@@ -8,32 +8,11 @@ let cors = require('cors');    //framework mdebloquer acces av any ivelany
 //Ts maints ilaina
 let app=express();
 app.use(express.urlencoded({extended: true}));
-app.use(express.json()) ;
 app.use(cors());        //asaina mampiasa cors le app izay express
 app.use(express.json());  //omena fahafahana mampiasa json le express
 app.listen(4300,() => {         //definition de port
     console.log("Started on PORT 4300");
 });
-
-
-//rehefa aka post s amaly
-app.post('/', (req, res) => {
-    //req.body = maka n contenu n post
-
-});
-
-//rehefa aka get s amaly
-app.get('/users', (req, res) => {
-    //req.query = maka n contenu n get
-
-    connection.query("SELECT * FROM membres", function (err, result, fields) {  
-    if (err) throw err; 
-    console.log(result);
-    });
-});
-
-//mysql
-//mse connecter am mysql kel nje
 
 let dbConfig = {
     host: "localhost",  //serveur mis anle mysql
@@ -54,7 +33,27 @@ connection.connect(function(err) {
     }else{
         console.log("Connected") ;
     }                            
-});   
+});
+
+//rehefa aka post s amaly
+app.post('/', (req, res) => {
+    //req.body = maka n contenu n post
+
+});
+
+app.get('/users', (req, res) => {
+    connection.query("SELECT * FROM membres", function (err, result, fields) {  
+    if (err) throw err; 
+    console.log(result);
+    });
+}); 
+
+app.get('/posts', (req, res) => {
+    connection.query("SELECT * FROM publications", function (err, result, fields) {  
+    if (err) throw err; 
+    console.log(result);
+    });
+});
 
 /*fs
 //methode asynchrone dol reo
