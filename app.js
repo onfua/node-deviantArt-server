@@ -1,18 +1,23 @@
+process.env.PWD = process.cwd() ;
+
 let fs = require('fs');  //afahana mamaky s msave fichier
 let express = require('express');  //framework manamora creation serveur
 let formidable = require('formidable');  //framework manamora upload fichier
 let mysql = require('mysql');  //framework afaana mconnect am BD mysql
 let cors = require('cors');    //framework mdebloquer acces av any ivelany
 
-
-//Ts maints ilaina
 let app=express();
 app.use(express.urlencoded({extended: true}));
-app.use(cors());        //asaina mampiasa cors le app izay express
+app.use(cors({
+    origin: "http://localhost:4200"
+}));        //asaina mampiasa cors le app izay express
 app.use(express.json());  //omena fahafahana mampiasa json le express
 app.listen(4300,() => {         //definition de port
     console.log("Started on PORT 4300");
 });
+
+// Then
+app.use(express.static(process.env.PWD + '/public'));
 
 let dbConfig = {
     host: "localhost",  //serveur mis anle mysql
@@ -43,15 +48,17 @@ app.post('/', (req, res) => {
 
 app.get('/users', (req, res) => {
     connection.query("SELECT * FROM membres", function (err, result, fields) {  
-    if (err) throw err; 
-    console.log(result);
+        if (err) throw err; 
+        console.log(result);
+        res.send(result) ;
     });
 }); 
 
 app.get('/posts', (req, res) => {
-    connection.query("SELECT * FROM publications", function (err, result, fields) {  
-    if (err) throw err; 
-    console.log(result);
+    connection.query("SELECT publications.*, nomUtilisateur, lienAvatar FROM publications JOIN membres ON publications.idMembre = membres.idMembre", function (err, result, fields) {  
+        if (err) throw err; 
+        console.log(result) ;
+        res.send(result) ;
     });
 });
 
