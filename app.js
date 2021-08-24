@@ -62,6 +62,54 @@ app.get('/posts', (req, res) => {
     });
 });
 
+app.get('/post/:id', (req, res) => {
+    connection.query("SELECT publications.*, nomUtilisateur, lienAvatar FROM publications JOIN membres ON publications.idMembre = membres.idMembre WHERE idPublication = "+req.params.id, function (err, result, fields) {  
+        if (err) throw err; 
+        console.log(result) ;
+        if(result.length > 0)
+            res.send(result[0]) ;
+        else{
+            res.send({
+                success: false,
+                errorMessage: "La publication est introuvable."
+            }) ;
+        }
+    });
+}) ;
+
+app.get('/comments/:postId', (req, res) => {
+    connection.query("SELECT * from commentaires JOIN membres ON commentaires.idMembre = membres.idMembre WHERE idPublication = "+req.params.postId, function(err, result, fields){
+        if (err) throw err; 
+        console.log(result) ;
+        res.send(result) ;
+    }) ;
+}) ;
+
+app.post('/comments/new', (req, res) => {
+    connection.query("INSERT INTO commentaires (contenu, dateCommentaire, idMembre, idPublication) VALUES('"+req.params.content+"', '"+new Date().getDate()+"', "+req.params.idUser+", "+req.params.idPost+")", function(err, result, fields){
+        if (err) throw err; 
+        console.log(result) ;
+        res.send({
+            success: true
+        }) ;
+    }) ; 
+}) ;
+
+app.post('/login', (req, res) => {
+    connection.query("SELECT * FROM membres WHERE nomUtilisateur='"+req.params.username+"' AND motDePasse='"+password+"'", function(err, result, fields){
+        if (err) throw err; 
+        console.log(result) ;
+        if(result.length > 0){
+            res.send({success: true}) ;
+        }else{
+            res.send({
+                success: false,
+                errorMessage: "Le nom d'utilisateur ou le mot de passe est incorrect."
+            }) ;
+        }
+    }) ; 
+})
+
 /*fs
 //methode asynchrone dol reo
 //mamaky fichier
