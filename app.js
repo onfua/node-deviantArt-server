@@ -19,15 +19,15 @@ app.listen(4300,() => {         //definition de port
 // Then
 app.use(express.static(process.env.PWD + '/public'));
 
-let dbConfig = {
+/*let dbConfig = {
     host: "localhost",  //serveur mis anle mysql
-    port: 3308,
+   // port: 3308,
     user: "root",   //user
     password: "",   //mdp
     database: 'deviantart'  //nom BD
-}
+}*/
 
-let connection ;
+/*let connection ;
 
 connection = mysql.createConnection(dbConfig);
 
@@ -38,7 +38,7 @@ connection.connect(function(err) {
     }else{
         console.log("Connected") ;
     }                            
-});
+});*/
 
 //rehefa aka post s amaly
 app.post('/', (req, res) => {
@@ -54,26 +54,75 @@ app.get('/users', (req, res) => {
     });
 }); 
 
+//mety
 app.get('/posts', (req, res) => {
-    connection.query("SELECT publications.*, nomUtilisateur, lienAvatar FROM publications JOIN membres ON publications.idMembre = membres.idMembre", function (err, result, fields) {  
-        if (err) throw err; 
-        console.log(result) ;
-        res.send(result) ;
+    let dbConfig = {
+        host: "localhost",  //serveur mis anle mysql
+       // port: 3308,
+        user: "root",   //user
+        password: "",   //mdp
+        database: 'deviantart'  //nom BD
+    }
+    let connection = mysql.createConnection(dbConfig);
+    connection.connect(function(err) { 
+        if(err) {      
+        console.log('error when connecting to db:', err);
+        
+        }else{
+            connection.query("SELECT publications.*,membres.nomUtilisateur,membres.lienPhoto FROM publications,membres WHERE publications.idMembre=membres.idMembre LIMIT 6", function (err, result, fields) {  
+                if (err) throw err; 
+                let tmp=result.map(function(e){
+                    return {
+                        idPublication:e.idPublication,
+                        idMembre:e.idMembre,
+                        saryMembre:"data:image/jpeg;base64,"+Buffer.from(fs.readFileSync(e.lienPhoto)).toString('base64'),
+                        nomMembre:e.nomUtilisateur,
+                        titre:e.titre,
+                        description:e.description,
+                        saryPublication:"data:image/jpeg;base64,"+Buffer.from(fs.readFileSync(e.lienImage)).toString('base64'),
+                        datePublication:e.datePublication,
+                        nbrVues:e.nombreVues
+                    }
+                });
+                res.send(tmp) ;
+            });
+        }                            
     });
+    
 });
 
-app.get('/post/:id', (req, res) => {
-    connection.query("SELECT publications.*, nomUtilisateur, lienAvatar FROM publications JOIN membres ON publications.idMembre = membres.idMembre WHERE idPublication = "+req.params.id, function (err, result, fields) {  
-        if (err) throw err; 
-        console.log(result) ;
-        if(result.length > 0)
-            res.send(result[0]) ;
-        else{
-            res.send({
-                success: false,
-                errorMessage: "La publication est introuvable."
-            }) ;
-        }
+app.get('/post', (req, res) => {
+    let dbConfig = {
+        host: "localhost",  //serveur mis anle mysql
+       // port: 3308,
+        user: "root",   //user
+        password: "",   //mdp
+        database: 'deviantart'  //nom BD
+    }
+    let connection = mysql.createConnection(dbConfig);
+    connection.connect(function(err) { 
+        if(err) {      
+        console.log('error when connecting to db:', err);
+        
+        }else{
+            connection.query("SELECT publications.*,membres.nomUtilisateur,membres.lienPhoto FROM publications,membres WHERE publications.idMembre=membres.idMembre AND publications.idPublication="+req.query.id, function (err, result, fields) {  
+                if (err) throw err; 
+                let tmp=result.map(function(e){
+                    return {
+                        idPublication:e.idPublication,
+                        idMembre:e.idMembre,
+                        saryMembre:"data:image/jpeg;base64,"+Buffer.from(fs.readFileSync(e.lienPhoto)).toString('base64'),
+                        nomMembre:e.nomUtilisateur,
+                        titre:e.titre,
+                        description:e.description,
+                        saryPublication:"data:image/jpeg;base64,"+Buffer.from(fs.readFileSync(e.lienImage)).toString('base64'),
+                        datePublication:e.datePublication,
+                        nbrVues:e.nombreVues
+                    }
+                });
+                res.send(tmp[0]) ;
+            });
+        }                            
     });
 }) ;
 
