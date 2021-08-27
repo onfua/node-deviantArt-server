@@ -8,9 +8,9 @@ let cors = require('cors');    //framework mdebloquer acces av any ivelany
 
 let app=express();
 app.use(express.urlencoded({extended: true}));
-app.use(cors({
+app.use(cors(/*{
     origin: "http://localhost:4200"
-}));        //asaina mampiasa cors le app izay express
+}*/));        //asaina mampiasa cors le app izay express
 app.use(express.json());  //omena fahafahana mampiasa json le express
 app.listen(4300,() => {         //definition de port
     console.log("Started on PORT 4300");
@@ -19,35 +19,36 @@ app.listen(4300,() => {         //definition de port
 // Then
 app.use(express.static(process.env.PWD + '/public'));
 
-/*let dbConfig = {
+
+let dbConfig = {
     host: "localhost",  //serveur mis anle mysql
    // port: 3308,
     user: "root",   //user
     password: "",   //mdp
     database: 'deviantart'  //nom BD
-}*/
+}
 
-/*let connection ;
+let connection : any ;
 
 connection = mysql.createConnection(dbConfig);
 
-connection.connect(function(err) { 
+connection.connect(function(err:any) { 
     if(err) {      
     console.log('error when connecting to db:', err);
     
     }else{
         console.log("Connected") ;
     }                            
-});*/
+});
 
 //rehefa aka post s amaly
-app.post('/', (req, res) => {
+app.post('/', (req:any, res:any) => {
     //req.body = maka n contenu n post
 
 });
 
-app.get('/users', (req, res) => {
-    connection.query("SELECT * FROM membres", function (err, result, fields) {  
+app.get('/users', (req:any, res:any) => {
+    connection.query("SELECT * FROM membres", function (err:any, result:any, fields:any) {  
         if (err) throw err; 
         console.log(result);
         res.send(result) ;
@@ -55,7 +56,7 @@ app.get('/users', (req, res) => {
 }); 
 
 //mety
-app.get('/posts', (req, res) => {
+app.get('/posts', (req:any, res:any) => {
     let dbConfig = {
         host: "localhost",  //serveur mis anle mysql
        // port: 3308,
@@ -64,14 +65,14 @@ app.get('/posts', (req, res) => {
         database: 'deviantart'  //nom BD
     }
     let connection = mysql.createConnection(dbConfig);
-    connection.connect(function(err) { 
+    connection.connect(function(err:any) { 
         if(err) {      
         console.log('error when connecting to db:', err);
         
         }else{
-            connection.query("SELECT publications.*,membres.nomUtilisateur,membres.lienPhoto FROM publications,membres WHERE publications.idMembre=membres.idMembre LIMIT 6", function (err, result, fields) {  
+            connection.query("SELECT publications.*,membres.nomUtilisateur,membres.lienPhoto FROM publications,membres WHERE publications.idMembre=membres.idMembre LIMIT 6", function (err:any, result:any, fields:any) {  
                 if (err) throw err; 
-                let tmp=result.map(function(e){
+                let tmp=result.map(function(e:any){
                     return {
                         idPublication:e.idPublication,
                         idMembre:e.idMembre,
@@ -91,7 +92,7 @@ app.get('/posts', (req, res) => {
     
 });
 
-app.get('/post', (req, res) => {
+app.get('/post', (req:any, res:any) => {
     let dbConfig = {
         host: "localhost",  //serveur mis anle mysql
        // port: 3308,
@@ -100,14 +101,14 @@ app.get('/post', (req, res) => {
         database: 'deviantart'  //nom BD
     }
     let connection = mysql.createConnection(dbConfig);
-    connection.connect(function(err) { 
+    connection.connect(function(err:any) { 
         if(err) {      
         console.log('error when connecting to db:', err);
         
         }else{
-            connection.query("SELECT publications.*,membres.nomUtilisateur,membres.lienPhoto FROM publications,membres WHERE publications.idMembre=membres.idMembre AND publications.idPublication="+req.query.id, function (err, result, fields) {  
+            connection.query("SELECT publications.*,membres.nomUtilisateur,membres.lienPhoto FROM publications,membres WHERE publications.idMembre=membres.idMembre AND publications.idPublication="+req.query.id, function (err:any, result:any, fields:any) {  
                 if (err) throw err; 
-                let tmp=result.map(function(e){
+                let tmp=result.map(function(e:any){
                     return {
                         idPublication:e.idPublication,
                         idMembre:e.idMembre,
@@ -126,16 +127,38 @@ app.get('/post', (req, res) => {
     });
 }) ;
 
-app.get('/comments/:postId', (req, res) => {
-    connection.query("SELECT * from commentaires JOIN membres ON commentaires.idMembre = membres.idMembre WHERE idPublication = "+req.params.postId, function(err, result, fields){
-        if (err) throw err; 
-        console.log(result) ;
-        res.send(result) ;
-    }) ;
+app.get('/comments', (req:any, res:any) => {
+    let dbConfig = {
+        host: "localhost",  //serveur mis anle mysql
+       // port: 3308,
+        user: "root",   //user
+        password: "",   //mdp
+        database: 'deviantart'  //nom BD
+    }
+    let connection = mysql.createConnection(dbConfig);
+    connection.connect(function(err:any) { 
+        if(err) {      
+        console.log('error when connecting to db:', err);
+        
+        }else{
+            connection.query("SELECT commentaires.*,membres.nomUtilisateur,membres.lienPhoto FROM commentaires,membres WHERE commentaires.idMembre=membres.idMembre AND commentaires.idPublication="+req.query.id, function(err:any, result:any, fields:any){
+                if (err) throw err; 
+                let tmp=result.map(function(e:any){
+                    return {
+                        contenu:e.contenu,
+                        nomMembre:e.nomUtilisateur,
+                        saryMembre:"data:image/jpeg;base64,"+Buffer.from(fs.readFileSync(e.lienPhoto)).toString('base64')
+                    }
+                });
+                res.send(tmp) ;
+            }) ;
+        }                            
+    });
+    
 }) ;
 
-app.post('/comments/new', (req, res) => {
-    connection.query("INSERT INTO commentaires (contenu, dateCommentaire, idMembre, idPublication) VALUES('"+req.params.content+"', '"+new Date().getDate()+"', "+req.params.idUser+", "+req.params.idPost+")", function(err, result, fields){
+app.post('/comments/new', (req:any, res:any) => {
+    connection.query("INSERT INTO commentaires (contenu, idMembre, idPublication) VALUES('"+req.params.content+"', '"+new Date().getDate()+"', "+req.params.idUser+", "+req.params.idPost+")", function(err:any, result:any, fields:any){
         if (err) throw err; 
         console.log(result) ;
         res.send({
@@ -144,8 +167,8 @@ app.post('/comments/new', (req, res) => {
     }) ; 
 }) ;
 
-app.post('/login', (req, res) => {
-    connection.query("SELECT * FROM membres WHERE nomUtilisateur='"+req.params.username+"' AND motDePasse='"+password+"'", function(err, result, fields){
+app.post('/login', (req:any, res:any) => {
+    connection.query("SELECT * FROM membres WHERE nomUtilisateur='"+req.params.username+"' AND motDePasse='"+req.params.password+"'", function(err:any, result:any, fields:any){
         if (err) throw err; 
         console.log(result) ;
         if(result.length > 0){
@@ -186,13 +209,13 @@ fs.rename('nom anle fichier o renomena', 'nom vaovao', function (err) {
 
 //formidable
 //exemple
-app.post('/uploader', (req, res) => {
+app.post('/uploader', (req:any, res:any) => {
     let form = new formidable.IncomingForm();
 
-    form.parse(req, function (err, fields, files) {
+    form.parse(req, function (err:any, fields:any, files:any) {
       var oldpath = files.filetoupload.path;            //filetoupload = attribut name nomena anle input file na anarany anty post
       var newpath = './uploads/' + files.filetoupload.name;
-      fs.rename(oldpath, newpath, function (err) {
+      fs.rename(oldpath, newpath, function (err:any) {
         if (err) throw err;
         console.log('File uploaded and moved!');
       });
