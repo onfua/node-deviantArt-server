@@ -22,7 +22,7 @@ app.use(express.static(process.env.PWD + '/public'));
 
 let dbConfig = {
     host: "localhost",  //serveur mis anle mysql
-   // port: 3308,
+    port: 3308,
     user: "root",   //user
     password: "",   //mdp
     database: 'deviantart'  //nom BD
@@ -57,13 +57,6 @@ app.get('/users', (req:any, res:any) => {
 
 //mety
 app.get('/posts', (req:any, res:any) => {
-    let dbConfig = {
-        host: "localhost",  //serveur mis anle mysql
-       // port: 3308,
-        user: "root",   //user
-        password: "",   //mdp
-        database: 'deviantart'  //nom BD
-    }
     let connection = mysql.createConnection(dbConfig);
     connection.connect(function(err:any) { 
         if(err) {      
@@ -93,13 +86,6 @@ app.get('/posts', (req:any, res:any) => {
 });
 
 app.get('/post', (req:any, res:any) => {
-    let dbConfig = {
-        host: "localhost",  //serveur mis anle mysql
-       // port: 3308,
-        user: "root",   //user
-        password: "",   //mdp
-        database: 'deviantart'  //nom BD
-    }
     let connection = mysql.createConnection(dbConfig);
     connection.connect(function(err:any) { 
         if(err) {      
@@ -128,13 +114,6 @@ app.get('/post', (req:any, res:any) => {
 }) ;
 
 app.get('/comments', (req:any, res:any) => {
-    let dbConfig = {
-        host: "localhost",  //serveur mis anle mysql
-       // port: 3308,
-        user: "root",   //user
-        password: "",   //mdp
-        database: 'deviantart'  //nom BD
-    }
     let connection = mysql.createConnection(dbConfig);
     connection.connect(function(err:any) { 
         if(err) {      
@@ -158,29 +137,45 @@ app.get('/comments', (req:any, res:any) => {
 }) ;
 
 app.post('/comments/new', (req:any, res:any) => {
-    connection.query("INSERT INTO commentaires (contenu, idMembre, idPublication) VALUES('"+req.params.content+"', '"+new Date().getDate()+"', "+req.params.idUser+", "+req.params.idPost+")", function(err:any, result:any, fields:any){
-        if (err) throw err; 
-        console.log(result) ;
-        res.send({
-            success: true
-        }) ;
-    }) ; 
+    let connection = mysql.createConnection(dbConfig);
+    connection.connect(function(err:any) {
+        if(err) {      
+            console.log('error when connecting to db:', err);
+            
+        }else{ 
+            connection.query("INSERT INTO commentaires (contenu, idMembre, idPublication) VALUES('"+req.params.content+"', '"+new Date().getDate()+"', "+req.params.idUser+", "+req.params.idPost+")", function(err:any, result:any, fields:any){
+                if (err) throw err; 
+                console.log(result) ;
+                res.send({
+                    success: true
+                }) ;
+            }) ; 
+        }
+    }) ;
 }) ;
 
 app.post('/login', (req:any, res:any) => {
-    connection.query("SELECT * FROM membres WHERE nomUtilisateur='"+req.params.username+"' AND motDePasse='"+req.params.password+"'", function(err:any, result:any, fields:any){
-        if (err) throw err; 
-        console.log(result) ;
-        if(result.length > 0){
-            res.send({success: true}) ;
-        }else{
-            res.send({
-                success: false,
-                errorMessage: "Le nom d'utilisateur ou le mot de passe est incorrect."
-            }) ;
+    let connection = mysql.createConnection(dbConfig);
+    connection.connect(function(err:any) {
+        if(err) {      
+            console.log('error when connecting to db:', err);
+            
+        }else{ 
+            connection.query("SELECT * FROM membres WHERE nomUtilisateur='"+req.params.username+"' AND motDePasse='"+req.params.password+"'", function(err:any, result:any, fields:any){
+                if (err) throw err; 
+                console.log(result) ;
+                if(result.length > 0){
+                    res.send({success: true}) ;
+                }else{
+                    res.send({
+                        success: false,
+                        errorMessage: "Le nom d'utilisateur ou le mot de passe est incorrect."
+                    }) ;
+                }
+            }) ; 
         }
-    }) ; 
-})
+    }) ;
+}) ;
 
 /*fs
 //methode asynchrone dol reo
