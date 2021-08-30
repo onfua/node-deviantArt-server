@@ -1,3 +1,4 @@
+const POST_UPLOAD_PATH = './public/uploads/posts' ;
 process.env.PWD = process.cwd() ;
 
 let fs = require('fs');  //afahana mamaky s msave fichier
@@ -5,6 +6,19 @@ let express = require('express');  //framework manamora creation serveur
 let formidable = require('formidable');  //framework manamora upload fichier
 let mysql = require('mysql');  //framework afaana mconnect am BD mysql
 let cors = require('cors');    //framework mdebloquer acces av any ivelany
+let multer = require('multer');
+
+let storage = multer.diskStorage({
+    destination: function (req:any, file:any, cb:any) {
+      cb(null, POST_UPLOAD_PATH)
+    },
+    filename: function (req:any, file:any, cb:any) {
+            cb(null,Date.now() + file.originalname);
+    }
+  
+})
+  
+let upload = multer({ storage: storage })
 
 let app=express();
 app.use(express.urlencoded({extended: true}));
@@ -16,7 +30,6 @@ app.listen(4300,() => {         //definition de port
     console.log("Started on PORT 4300");
 });
 
-// Then
 app.use(express.static(process.env.PWD + '/public'));
 
 
@@ -111,6 +124,26 @@ app.get('/post', (req:any, res:any) => {
             });
         }                            
     });
+}) ;
+
+app.post('/post/new', upload.single('image'), (req:any, res:any) => {
+    let connection = mysql.createConnection(dbConfig);
+    connection.connect(function(err:any) { 
+        if(err) {      
+            console.log('error when connecting to db:', err);
+        }else{
+            const titre = req.body.titre ;
+            const desc = req.body.description ;
+            const date = req.body.date ;
+            const membre = req.body.membre ;
+            const lien = POST_UPLOAD_PATH+"/"+req.file.filename ;
+            connection.query("INSERT INTO publications(titre, description, lienImage, datePublication,idMembre, idTopic) VALUES('"+titre+"', '"+desc+"', '"+lien+"', '"+date+"', "+membre+", 1)", function(err:any, result:any, fields:any){
+                if(err) throw err ;
+            }) ;
+            console.log(lien) ;
+            res.send({success:true});
+        }
+    }) ;
 }) ;
 
 app.get('/comments', (req:any, res:any) => {
